@@ -1,4 +1,4 @@
-const CACHE_NAME = "danube-shell-v1";
+const CACHE_NAME = "danube-shell-v2";
 const FILES = [
 	"./",
 	"./index.html",

@@ -11,3 +11,7 @@ button { border: 0; border-radius: 8px; background: #3bafff; color: #071522; fon
 #stats span { display: block; color: #abc1d1; font-size: 12px; margin-bottom: 4px; }
 #stats strong { font-size: 19px; }
 #status { margin: 0; padding: 0 12px 14px; color: #bcd0dd; font-size: 13px; }
+#tour-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 12px 0; }
+#tour-controls span { font-size: 12px; color: #abc1d1; }
+#tour-reset { background: #354b60; color: #f2f7fc; }
+#tour-reset:disabled { opacity: 0.4; }

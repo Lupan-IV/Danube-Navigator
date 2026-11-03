@@ -16,10 +16,16 @@
 	</header>
 	<main>
 		<div id="map" role="application" aria-label="Karte der Donauroute"></div>
+		<section id="tour-controls" aria-label="Touraufzeichnung">
+			<button id="tour-toggle" type="button">Tour starten</button>
+			<button id="tour-reset" type="button">Zurücksetzen</button>
+			<span id="tour-state">Tour noch nicht gestartet</span>
+		</section>
 		<section id="stats">
 			<div><span>Gesamtroute</span><strong id="total">–</strong></div>
-			<div><span>Seit Start</span><strong id="progress">–</strong></div>
-			<div><span>Bis zum Ziel</span><strong id="remaining">–</strong></div>
+			<div><span>Tatsächlich gefahren</span><strong id="progress">0.0 km</strong></div>
+			<div><span>Routen-km (nächster Punkt)</span><strong id="route-position">–</strong></div>
+			<div><span>Rest auf der Route</span><strong id="remaining">–</strong></div>
 			<div><span>Abstand zur Route</span><strong id="offroute">–</strong></div>
 		</section>
 		<p id="status" role="status">Lade Referenzroute …</p>

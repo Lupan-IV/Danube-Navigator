@@ -29,3 +29,14 @@ For a local development server, open the folder with an HTTP server. Do not open
 
 - Route: user-provided temporary Komoot GPX (not final).
 - Map tiles: © OpenStreetMap contributors, online only.
+
+## Phase 2.8 – Tourstart und GPS-Aufzeichnung
+
+- **GPS starten**, auf Position warten, dann **Tour starten**.
+- **Tour pausieren** stoppt die Distanzaufzeichnung; **Tour fortsetzen** setzt sie fort.
+- **Zurücksetzen** löscht den lokal gespeicherten Fortschritt nach Bestätigung.
+- **Tatsächlich gefahren** ist eine GPS-basierte Schätzung seit Tourstart.
+- **Routen-km** und **Rest auf der Route** beziehen sich auf den nächstgelegenen GPX-Punkt; fern der Route sind diese Angaben keine gefahrene Distanz.
+- Aufzeichnung funktioniert nur, solange die Seite aktiv ist und GPS-Daten liefert. Hintergrund- und Sperrbildschirm-Tracking ist nicht gewährleistet.
+- Daten liegen aktuell unter `danubeTourProgressV1` im `localStorage` des Browsers; Browserdaten löschen setzt den Stand zurück.
+- Die Distanzschätzung ignoriert ungenaue Positionswerte (>50 m), sehr kleine Bewegungen, unrealistische Sprünge und lange GPS-Lücken. Sie ersetzt noch keinen vollständigen Track-Recorder.
