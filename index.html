@@ -6,19 +6,37 @@
 	<meta name="theme-color" content="#111b25">
 	<title>Danube Navigator</title>
 	<link rel="manifest" href="./manifest.webmanifest">
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 	<link rel="stylesheet" href="./assets/css/app.css">
 </head>
 <body>
 	<header>
-		<div><strong>Danube Navigator</strong><small>Komoot-Referenzroute · Phase 2</small></div>
+		<div><strong>Danube Navigator</strong><small>Komoot-Referenzroute · Phase 3.1</small></div>
 		<button id="locate" type="button">GPS starten</button>
 	</header>
 	<main>
 		<div id="map" role="application" aria-label="Karte der Donauroute"></div>
+		<section id="map-controls" aria-label="Kartenansicht">
+			<button id="view-test" type="button">Testgebiet</button>
+			<button id="view-route" type="button">Ganze Route</button>
+		</section>
+		<section id="offline-panel" aria-label="Offline-Karten">
+			<div class="panel-heading">
+				<strong>Offline-Karte: Donaueschingen – Tuttlingen</strong>
+				<span id="offline-state">Prüfe lokale Kartendaten …</span>
+			</div>
+			<div class="button-bar">
+				<button id="download-map" type="button">Testkarte herunterladen</button>
+				<button id="import-map" type="button" class="secondary">PMTiles importieren</button>
+				<input id="map-file" type="file" accept=".pmtiles" hidden>
+				<button id="delete-map" type="button" class="secondary" hidden>Offline-Karte löschen</button>
+			</div>
+			<progress id="download-progress" value="0" max="100" hidden></progress>
+			<p id="offline-note">Die Online-OSM-Karte ist noch nicht offline verfügbar. Nach dem Herunterladen wird die Karte auf deinem Gerät gespeichert.</p>
+		</section>
 		<section id="tour-controls" aria-label="Touraufzeichnung">
 			<button id="tour-toggle" type="button">Tour starten</button>
-			<button id="tour-reset" type="button">Zurücksetzen</button>
+			<button id="tour-reset" type="button" class="secondary">Zurücksetzen</button>
 			<span id="tour-state">Tour noch nicht gestartet</span>
 		</section>
 		<section id="stats">
@@ -30,7 +48,8 @@
 		</section>
 		<p id="status" role="status">Lade Referenzroute …</p>
 	</main>
-	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
 	<script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>

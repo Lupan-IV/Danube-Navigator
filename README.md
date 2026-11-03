@@ -1,42 +1,43 @@
-# Danube Navigator
+# Danube Navigator – Phase 3.1
 
-Independent successor project to the Peaks of the Balkans trail assistant.
-The original PoB repository remains unchanged.
+Eigenständige PWA zur Donau-Fahrradtour, basierend auf der Phase-2-Anwendung. Die ursprüngliche PoB-App wird nicht verändert.
 
-## Phase 2 prototype
+## Funktionen
 
-- Temporary Komoot reference GPX (`data/reference-route.gpx`)
-- Leaflet map and reference route
-- Browser GPS position, route progress, distance to route, remaining distance
-- Small PWA shell cache
-- Modular JavaScript/CSS structure
+- GPX-Referenzroute (Komoot, ca. 2644 km)
+- GPS, Abweichung und Fortschrittsanzeige
+- Tour starten/pausieren und gefahrene Distanz lokal speichern (nur bei geöffneter App)
+- MapLibre-Karte mit OSM-Rasterkarten **online** als Fallback
+- PMTiles-Vektorkartenpaket **offline** aus dem OPFS des Browsers
+- Offline-Kartenpaket herunterladen oder lokal importieren
+- Separat automatisch erstellbare OSM-Testkarte Donaueschingen–Tuttlingen
 
-## Known limitations
+## Vorbereitung der Testkarte (einmalig)
 
-- **No offline base map yet.** OpenStreetMap map tiles require internet. The app shell and reference GPX are cached after the first successful online load.
-- The GPS progress calculation uses the geographically nearest route segment. It can jump at crossings or parallel stretches; map matching will be improved.
-- No independent offline bicycle routing or rerouting yet.
-- No POI / stage / backup features yet.
-- The PoB application is a feature reference, not copied verbatim: its weather, water, stages, and interface are intentionally deferred until modular migration.
+1. ZIP-Inhalt ins **Root-Verzeichnis** des GitHub-Repositories hochladen, mit gleicher Ordnerstruktur.
+2. GitHub → **Actions** → **Offline-Testkarte erstellen** → **Run workflow**.
+3. Erfolgreichen Lauf abwarten. Er erzeugt `data/maps/donau-test.pmtiles` und committet die Datei.
+4. GitHub Pages neu öffnen und **Testkarte herunterladen** antippen.
+5. Auf **Offline bereit** warten und dann den Flugmodus einschalten und die Seite neu laden.
 
-## Deployment
+Falls die GitHub Action mit `403` bei `git push` scheitert, müssen unter **Settings → Actions → General → Workflow permissions** Schreibrechte für Actions erlaubt sein.
 
-Upload the *contents* of this folder to the root of the public GitHub repository, then enable GitHub Pages under Settings > Pages > Deploy from a branch > main / root.
-The site will be served at `https://lupan-iv.github.io/Danube-Navigator/`.
-For a local development server, open the folder with an HTTP server. Do not open index.html via `file://`.
+Die Workflow-Karte verwendet Protomaps-Demodaten. Der Ausschnitt wird über das freie PMTiles-Werkzeug `go-pmtiles` auf GitHub erstellt. Der Workflow selbst ist ein erster Prototyp und noch nicht auf GitHub erfolgreich durchgelaufen.
 
-## Data sources
+## Besonderheiten
 
-- Route: user-provided temporary Komoot GPX (not final).
-- Map tiles: © OpenStreetMap contributors, online only.
+- **Keine OSM-Rasterkacheln massenhaft herunterladen.** Die OSM-Online-Karte dient nur als Online-Fallback.
+- **PMTiles ist nicht dasselbe wie Routing.** Das Offline-Routing folgt in einer späteren Phase.
+- Die Offline-Testkarte ist nur ein kleiner Ausschnitt (ca. 8.43–8.91°E, 47.89–48.15°N) und nur bis Zoom 14 detailreich (in größerem Zoom überzeichnet).
+- Offline sind Straßen, Wasser, Flächen und Gebäude sichtbar. **Ortsnamen sind in dieser Testversion noch nicht enthalten**, da dafür zusätzlich lokal gespeicherte Schrift-/Glyph-Dateien benötigt werden.
+- **OPFS wird beim Löschen der Websitedaten ebenfalls gelöscht.** Nicht auf "Website-Daten schreddern" klicken, wenn Kartendaten erhalten bleiben sollen. Die App-Shell wird per Service Worker aktualisiert, Tourfortschritt bleibt dabei bestehen.
+- Auf Android verhindert der gesperrte Bildschirm eine zuverlässige GPS-Aufzeichnung in der PWA. Für dauerhaftes Tracking benötigen wir später einen nativen Android-Hintergrunddienst.
+- Abseits des Testgebiets bleibt die Offline-Karte leer. Die GPX-Route selbst ist weltweit verfügbar.
 
-## Phase 2.8 – Tourstart und GPS-Aufzeichnung
+## Datenschutz/Lizenzen
 
-- **GPS starten**, auf Position warten, dann **Tour starten**.
-- **Tour pausieren** stoppt die Distanzaufzeichnung; **Tour fortsetzen** setzt sie fort.
-- **Zurücksetzen** löscht den lokal gespeicherten Fortschritt nach Bestätigung.
-- **Tatsächlich gefahren** ist eine GPS-basierte Schätzung seit Tourstart.
-- **Routen-km** und **Rest auf der Route** beziehen sich auf den nächstgelegenen GPX-Punkt; fern der Route sind diese Angaben keine gefahrene Distanz.
-- Aufzeichnung funktioniert nur, solange die Seite aktiv ist und GPS-Daten liefert. Hintergrund- und Sperrbildschirm-Tracking ist nicht gewährleistet.
-- Daten liegen aktuell unter `danubeTourProgressV1` im `localStorage` des Browsers; Browserdaten löschen setzt den Stand zurück.
-- Die Distanzschätzung ignoriert ungenaue Positionswerte (>50 m), sehr kleine Bewegungen, unrealistische Sprünge und lange GPS-Lücken. Sie ersetzt noch keinen vollständigen Track-Recorder.
+Kartengrundlage: © OpenStreetMap contributors (ODbL), über den Protomaps-v4-Basemap-Datensatz. MapLibre GL JS und PMTiles BSD-3-Clause-Lizenz.
+
+## Technischer Stand
+
+Dies ist ein **Prototyp**. Die Online-Bibliotheken werden bei der ersten erfolgreichen Online-Nutzung im PWA-Cache hinterlegt. Der Download von Kartenpaketen schreibt sequentiell nach OPFS. Wenn der Speicherplatz knapp wird, kann der Download fehlschlagen.
