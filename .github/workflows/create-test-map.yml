@@ -19,11 +19,27 @@ jobs:
           go-version: "1.25"
       - name: PMTiles-Werkzeug installieren
         run: go install github.com/protomaps/go-pmtiles@v1.31.2
+      - name: Aktuelle Protomaps-Kartenquelle finden
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          for days_back in $(seq 0 13); do
+            build_date=$(date -u -d "${days_back} days ago" +%Y%m%d)
+            source_url="https://build.protomaps.com/${build_date}.pmtiles"
+            if curl --silent --fail --location --head --max-time 15 "$source_url" > /dev/null; then
+              echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
+              echo "Gefundener Protomaps-Build: $build_date"
+              exit 0
+            fi
+          done
+          echo "::error::Keine verfügbare Protomaps-Kartenquelle in den letzten 14 Tagen gefunden."
+          exit 1
       - name: Donaueschingen-Tuttlingen ausschneiden
         run: |
           mkdir -p data/maps
           "$(go env GOPATH)/bin/go-pmtiles" extract \
-            https://demo-bucket.protomaps.com/v4.pmtiles \
+            "${{ steps.source.outputs.source_url }}" \
             data/maps/donau-test.pmtiles \
             --bbox=8.43,47.89,8.91,48.15 \
             --maxzoom=14
