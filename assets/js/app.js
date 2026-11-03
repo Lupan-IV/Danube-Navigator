@@ -1,11 +1,17 @@
 import { parseGpx, closestRoutePosition, distanceKm } from "./route.js";
+import { onlineStyle, TEST_BOUNDS } from "./map-style.js";
+import { initializeOfflineMaps } from "./offline-maps.js";
 
 const STORAGE_KEY = "danubeTourProgressV1";
-const map = L.map("map", { zoomControl: true });
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-	maxZoom: 19,
-	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+const map = new maplibregl.Map({
+	container: "map",
+	center: [8.6, 48.0],
+	zoom: 9,
+	style: onlineStyle(),
+	maxZoom: 19
+});
+map.addControl(new maplibregl.NavigationControl(), "top-left");
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 100 }), "bottom-left");
 
 const statusElement = document.getElementById("status");
 const locationButton = document.getElementById("locate");
@@ -14,8 +20,8 @@ const resetButton = document.getElementById("tour-reset");
 const formatKm = value => `${value.toFixed(1)} km`;
 
 let route;
+let routeBounds;
 let locationMarker;
-let locationCircle;
 let watchId = null;
 let currentPosition = null;
 let previousRecordedPosition = null;
@@ -47,6 +53,36 @@ function updateTourUI() {
 	document.getElementById("tour-state").textContent = tour.active ? "Tour läuft" : tour.started ? "Tour pausiert" : "Tour noch nicht gestartet";
 }
 
+function addRouteLayer() {
+	if (!route || !map.isStyleLoaded()) {
+		return;
+	}
+	if (map.getSource("danube-route")) {
+		return;
+	}
+	map.addSource("danube-route", {
+		type: "geojson",
+		data: {
+			type: "FeatureCollection",
+			features: [{
+				type: "Feature",
+				properties: {},
+				geometry: { type: "LineString", coordinates: route.points.map(point => [point.lon, point.lat]) }
+			}]
+		}
+	});
+	map.addLayer({
+		id: "danube-route-line",
+		type: "line",
+		source: "danube-route",
+		layout: { "line-join": "round", "line-cap": "round" },
+		paint: { "line-color": "#087fee", "line-width": 4, "line-opacity": 0.85 }
+	});
+}
+
+map.on("style.load", addRouteLayer);
+map.on("error", error => console.warn("Map error:", error.error));
+
 async function initialize() {
 	updateTourUI();
 	try {
@@ -55,13 +91,19 @@ async function initialize() {
 			throw new Error(`GPX-Ladevorgang fehlgeschlagen (HTTP ${response.status}).`);
 		}
 		route = parseGpx(await response.text());
-		const line = L.polyline(route.points.map(point => [point.lat, point.lon]), { color: "#0783f1", weight: 4 }).addTo(map);
-		map.fitBounds(line.getBounds(), { padding: [15, 15] });
+		const bounds = new maplibregl.LngLatBounds();
+		for (const point of route.points) {
+			bounds.extend([point.lon, point.lat]);
+		}
+		routeBounds = bounds;
+		addRouteLayer();
+		map.fitBounds(TEST_BOUNDS, { padding: 25, maxZoom: 11 });
 		document.getElementById("total").textContent = formatKm(route.totalKm);
-		statusElement.textContent = "Referenzroute geladen. GPS kann jetzt gestartet werden. Offline-Karte folgt in Phase 3.";
+		statusElement.textContent = "Referenzroute geladen. Offline-Karte kann separat installiert werden.";
 	} catch (error) {
 		statusElement.textContent = `Fehler: ${error.message}`;
 	}
+	await initializeOfflineMaps(map);
 }
 
 function recordDistance(position) {
@@ -99,15 +141,15 @@ function recordDistance(position) {
 function onPosition(position) {
 	currentPosition = position;
 	const location = { lat: position.coords.latitude, lon: position.coords.longitude };
-	const latLng = [location.lat, location.lon];
+	const lngLat = [location.lon, location.lat];
 	if (!locationMarker) {
-		locationMarker = L.circleMarker(latLng, { radius: 7, color: "#ffffff", weight: 3, fillColor: "#007bff", fillOpacity: 1 }).addTo(map);
-		locationCircle = L.circle(latLng, { radius: position.coords.accuracy, color: "#007bff", weight: 1, fillOpacity: 0.08 }).addTo(map);
+		const markerElement = document.createElement("div");
+		markerElement.className = "gps-dot";
+		locationMarker = new maplibregl.Marker({ element: markerElement }).setLngLat(lngLat).addTo(map);
 	} else {
-		locationMarker.setLatLng(latLng);
-		locationCircle.setLatLng(latLng).setRadius(position.coords.accuracy);
+		locationMarker.setLngLat(lngLat);
 	}
-	map.setView(latLng, Math.max(map.getZoom(), 13));
+	map.easeTo({ center: lngLat, zoom: Math.max(map.getZoom(), 13), duration: 300 });
 	recordDistance(position);
 	if (route) {
 		const result = closestRoutePosition(route, location);
@@ -117,7 +159,7 @@ function onPosition(position) {
 			? `${result.distanceKm.toFixed(1)} km`
 			: `${Math.round(result.distanceKm * 1000)} m`;
 		statusElement.textContent = result.distanceKm > 0.2
-			? "Hinweis: GPS-Position liegt mehr als 200 m von der Referenzroute entfernt. Routen-km und Restdistanz beziehen sich auf den nächstgelegenen Routenpunkt."
+			? "Hinweis: Du bist über 200 m von der Referenzroute entfernt. Routen-km und Restdistanz beziehen sich auf den nächstgelegenen Routenpunkt."
 			: `GPS aktiv · Genauigkeit ca. ${Math.round(position.coords.accuracy)} m`;
 	}
 }
@@ -168,7 +210,7 @@ tourButton.addEventListener("click", () => {
 	previousRecordedPosition = null;
 	saveTour();
 	updateTourUI();
-	statusElement.textContent = "Tour läuft. Gefahrene Strecke wird lokal gespeichert (nur bei geöffneter App und aktivem GPS).";
+	statusElement.textContent = "Tour läuft. GPS-Aufzeichnung funktioniert aktuell nur mit geöffneter App.";
 });
 
 resetButton.addEventListener("click", () => {
@@ -182,6 +224,15 @@ resetButton.addEventListener("click", () => {
 	statusElement.textContent = "Tourfortschritt zurückgesetzt.";
 });
 
+document.getElementById("view-test").addEventListener("click", () => {
+	map.fitBounds(TEST_BOUNDS, { padding: 25, maxZoom: 11 });
+});
+document.getElementById("view-route").addEventListener("click", () => {
+	if (routeBounds) {
+		map.fitBounds(routeBounds, { padding: 25 });
+	}
+});
+
 window.addEventListener("pagehide", () => {
 	if (tour.active) {
 		pauseTour();
@@ -189,7 +240,9 @@ window.addEventListener("pagehide", () => {
 });
 
 if ("serviceWorker" in navigator) {
-	window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+	window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).catch(error => {
+		console.warn("Service worker unavailable:", error);
+	}));
 }
 
 initialize();

@@ -1,17 +1,145 @@
-:root { font-family: system-ui, sans-serif; color: #f2f7fc; background: #111b25; }
-* { box-sizing: border-box; }
-body { margin: 0; }
-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 12px; }
-header strong, header small { display: block; }
-header small { font-size: 12px; color: #acc0d0; }
-button { border: 0; border-radius: 8px; background: #3bafff; color: #071522; font-weight: bold; padding: 11px 14px; }
-#map { height: min(68dvh, 760px); background: #263746; }
-#stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px; }
-#stats div { border-radius: 8px; background: #1d2d3b; padding: 10px; }
-#stats span { display: block; color: #abc1d1; font-size: 12px; margin-bottom: 4px; }
-#stats strong { font-size: 19px; }
-#status { margin: 0; padding: 0 12px 14px; color: #bcd0dd; font-size: 13px; }
-#tour-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 12px 0; }
-#tour-controls span { font-size: 12px; color: #abc1d1; }
-#tour-reset { background: #354b60; color: #f2f7fc; }
-#tour-reset:disabled { opacity: 0.4; }
+:root {
+	color-scheme: dark;
+	font-family: system-ui, -apple-system, sans-serif;
+	background: #101923;
+	color: #f4f7fb;
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+}
+header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	background: #111b25;
+}
+header strong {
+	display: block;
+	font-size: 20px;
+}
+header small {
+	display: block;
+	font-size: 13px;
+	color: #a6c4de;
+}
+button {
+	background: #37aaf4;
+	color: #072035;
+	border: 0;
+	border-radius: 10px;
+	padding: 11px 14px;
+	font-weight: 700;
+	font-size: 15px;
+	cursor: pointer;
+}
+button.secondary {
+	background: #30485d;
+	color: #f5f7fc;
+}
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+#map {
+	width: 100%;
+	height: min(55vh, 570px);
+	min-height: 290px;
+	background: #d9e4e0;
+}
+#map-controls, .button-bar, #tour-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	padding: 12px 14px;
+}
+#map-controls {
+	padding-bottom: 0;
+}
+#map-controls button {
+	background: #28455d;
+	color: white;
+}
+#offline-panel {
+	margin: 12px 14px;
+	padding: 14px;
+	background: #1c2d3c;
+	border: 1px solid #3b596d;
+	border-radius: 12px;
+}
+.panel-heading {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.panel-heading strong {
+	font-size: 16px;
+}
+#offline-state {
+	color: #add1ec;
+}
+#offline-panel .button-bar {
+	padding: 12px 0 0;
+}
+#offline-note {
+	font-size: 13px;
+	line-height: 1.5;
+	color: #b6c9d8;
+	margin: 10px 0 0;
+}
+#download-progress {
+	width: 100%;
+	margin-top: 10px;
+}
+#tour-state {
+	color: #b4c7d6;
+}
+#stats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	padding: 0 14px;
+}
+#stats > div {
+	padding: 14px;
+	border-radius: 10px;
+	background: #1c2d3c;
+	min-height: 90px;
+}
+#stats span {
+	display: block;
+	font-size: 13px;
+	color: #abc1d3;
+}
+#stats strong {
+	display: block;
+	margin-top: 8px;
+	font-size: 24px;
+	word-break: break-word;
+}
+#status {
+	color: #b5c9d9;
+	padding: 10px 14px 28px;
+	font-size: 14px;
+}
+.gps-dot {
+	width: 17px;
+	height: 17px;
+	border: 3px solid white;
+	border-radius: 50%;
+	background: #007bff;
+	box-shadow: 0 0 0 2px #0051bb77;
+}
+@media (max-width: 360px) {
+	#stats strong {
+		font-size: 20px;
+	}
+	button {
+		font-size: 13px;
+	}
+}
