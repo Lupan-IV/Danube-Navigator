@@ -1,0 +1,57 @@
+name: Offline-Testkarte erstellen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Go installieren
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: PMTiles-Werkzeug installieren
+        run: go install github.com/protomaps/go-pmtiles@v1.31.2
+      - name: Aktuelle Protomaps-Kartenquelle finden
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          for days_back in $(seq 0 13); do
+            build_date=$(date -u -d "${days_back} days ago" +%Y%m%d)
+            source_url="https://build.protomaps.com/${build_date}.pmtiles"
+            if curl --silent --fail --location --head --max-time 15 "$source_url" > /dev/null; then
+              echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
+              echo "Gefundener Protomaps-Build: $build_date"
+              exit 0
+            fi
+          done
+          echo "::error::Keine verfügbare Protomaps-Kartenquelle in den letzten 14 Tagen gefunden."
+          exit 1
+      - name: Donaueschingen-Tuttlingen ausschneiden
+        run: |
+          mkdir -p data/maps
+          "$(go env GOPATH)/bin/go-pmtiles" extract \
+            "${{ steps.source.outputs.source_url }}" \
+            data/maps/donau-test.pmtiles \
+            --bbox=8.43,47.89,8.91,48.15 \
+            --maxzoom=14
+          "$(go env GOPATH)/bin/go-pmtiles" show data/maps/donau-test.pmtiles
+          du -h data/maps/donau-test.pmtiles
+          test "$(stat -c%s data/maps/donau-test.pmtiles)" -lt 95000000
+      - name: Testkarte ins Repository speichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/maps/donau-test.pmtiles
+          if ! git diff --cached --quiet; then
+            git commit -m "Add offline test basemap for Donaueschingen to Tuttlingen"
+            git push
+          fi
