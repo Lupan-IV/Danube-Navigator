@@ -178,19 +178,86 @@ def transform(data, bbox):
 	}
 
 
+def geometry_center(geometry):
+	"""Return a practical marker location for OSM geometries."""
+	if not isinstance(geometry, dict):
+		return None
+	coordinates = geometry.get("coordinates")
+	geometry_type = geometry.get("type")
+	if geometry_type == "Point":
+		if (isinstance(coordinates, list) and len(coordinates) >= 2
+			and all(isinstance(value, (int, float)) for value in coordinates[:2])):
+			return coordinates[0], coordinates[1]
+		return None
+	if geometry_type not in {"LineString", "MultiLineString", "Polygon", "MultiPolygon"}:
+		return None
+	positions = []
+	def walk(value):
+		if not isinstance(value, list):
+			return
+		if len(value) >= 2 and all(isinstance(v, (int, float)) for v in value[:2]):
+			positions.append((value[0], value[1]))
+			return
+		for child in value:
+			walk(child)
+	walk(coordinates)
+	if not positions:
+		return None
+	# Bounding-box center is stable for irregular or multipolygon areas.
+	return ((min(pos[0] for pos in positions) + max(pos[0] for pos in positions)) / 2,
+		(min(pos[1] for pos in positions) + max(pos[1] for pos in positions)) / 2)
+
+
+def transform_geojson(data, bbox):
+	"""Convert Osmium GeoJSON features to the app's existing offline POI schema."""
+	if not isinstance(data, dict) or not isinstance(data.get("features"), list):
+		raise ValueError("Ungueltiger GeoJSON-Export: features fehlen")
+	converted = []
+	for raw_feature in data["features"]:
+		if not isinstance(raw_feature, dict):
+			continue
+		properties = raw_feature.get("properties") or {}
+		if not isinstance(properties, dict):
+			continue
+		osm_type = properties.get("@type")
+		osm_id = properties.get("@id")
+		if osm_type not in {"node", "way", "relation"}:
+			continue
+		try:
+			osm_id = int(osm_id)
+		except (TypeError, ValueError):
+			continue
+		center = geometry_center(raw_feature.get("geometry"))
+		if center is None:
+			continue
+		lon, lat = center
+		tags = {key: value for key, value in properties.items()
+			if not key.startswith("@") and isinstance(value, str)}
+		converted.append({"type": osm_type, "id": osm_id, "lat": lat,
+			"lon": lon, "center": {"lat": lat, "lon": lon}, "tags": tags})
+	result = transform({"elements": converted}, bbox)
+	result["metadata"]["source"] = "OpenStreetMap via Geofabrik OSM extracts and Osmium"
+	return result
+
+
 def main():
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument("--bbox", default="9.82,48.27,10.16,48.53", help="west,south,east,north")
 	parser.add_argument("--output", default="data/pois/outdoor-test.geojson")
 	parser.add_argument("--input", help="Optionale vorhandene Overpass-JSON-Datei für lokale Tests")
+	parser.add_argument("--input-geojson", help="Osmium GeoJSON-Export aus lokalen OSM-Rohdaten")
 	args = parser.parse_args()
 	bbox = parse_bbox(args.bbox)
-	if args.input:
-		data = json.loads(Path(args.input).read_text(encoding="utf-8"))
+	if args.input_geojson:
+		data = json.loads(Path(args.input_geojson).read_text(encoding="utf-8"))
+		result = transform_geojson(data, bbox)
 	else:
-		print("Lade OSM-Daten aus Overpass …", flush=True)
-		data = load_overpass(build_query(bbox))
-	result = transform(data, bbox)
+		if args.input:
+			data = json.loads(Path(args.input).read_text(encoding="utf-8"))
+		else:
+			print("Lade OSM-Daten aus Overpass …", flush=True)
+			data = load_overpass(build_query(bbox))
+		result = transform(data, bbox)
 	if not result["features"]:
 		raise RuntimeError("Keine POIs gefunden; es wird keine leere Datei veröffentlicht. OSM-Abfrage prüfen.")
 	output = Path(args.output)

@@ -37,3 +37,7 @@ Komplettes GitHub-Pages-PWA-Projekt, basierend auf der vorhandenen Donau-Version
 
 Kartendaten © OpenStreetMap contributors, ODbL 1.0; Geofabrik-Extrakte: `download.geofabrik.de`.
 Die PMTiles werden mit `systemed/tilemaker` erstellt. Eine zusätzliche Lizenz-/Attributionsprüfung ist vor einer breiten Veröffentlichung vorzunehmen.
+
+## Aktualisierung POI-Import (18.11.2026)
+
+Die Action **Outdoor-POIs importieren** verwendet jetzt direkt OSM-Rohdaten von Geofabrik mit **Osmium**, nicht mehr Overpass. Der bisherige 502-/Timeout-Fehler von Overpass wird dadurch umgangen. Nach dem Hochladen aller Dateien muss nur diese POI-Action neu gestartet werden; **die Offline-Testkarte muss nicht neu erstellt werden**, sofern sie bereits erfolgreich erzeugt wurde und unter `data/maps/ulm-test-z16.pmtiles` verfügbar ist. Der neue POI-GitHub-Workflow wurde noch nicht in GitHub Actions getestet.
