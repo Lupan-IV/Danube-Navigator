@@ -12,7 +12,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_URLS = (
+	"https://overpass.private.coffee/api/interpreter",
+	"https://overpass-api.de/api/interpreter",
+)
 
 CATEGORY_LABELS = {
 	"shelter": "Schutzhütten",
@@ -58,28 +61,37 @@ def build_query(bbox):
 
 def load_overpass(query):
 	payload = urlencode({"data": query}).encode("utf-8")
-	last_error = None
-	for attempt in range(3):
-		request = Request(
-			OVERPASS_URL,
-			data=payload,
-			headers={
-				"User-Agent": "DanubeNavigator-OutdoorPOI/1.0 (GitHub Actions; personal offline map)",
-				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-				"Accept": "application/json",
-			},
-			method="POST",
-		)
-		try:
-			with urlopen(request, timeout=130) as response:
-				return json.load(response)
-		except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
-			last_error = error
-			if isinstance(error, HTTPError) and error.code not in (429, 500, 502, 503, 504):
-				break
-			if attempt < 2:
-				time.sleep(8 * (attempt + 1))
-	raise RuntimeError(f"Overpass-Abfrage fehlgeschlagen: {last_error}")
+	errors = []
+
+	for url in OVERPASS_URLS:
+		for attempt in range(2):
+			print(f"Overpass: {url} (attempt {attempt + 1}/2)", flush=True)
+			request = Request(
+				url,
+				data=payload,
+				headers={
+					"User-Agent": "DanubeNavigator-OutdoorPOI/1.1 (GitHub Actions; personal offline map)",
+					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"Accept": "application/json",
+				},
+				method="POST",
+			)
+			try:
+				with urlopen(request, timeout=85) as response:
+					data = json.load(response)
+				if not isinstance(data, dict) or not isinstance(data.get("elements"), list):
+					raise ValueError("Invalid Overpass result: missing elements list")
+				print(f"Overpass responded: {len(data['elements'])} OSM elements", flush=True)
+				return data
+			except (HTTPError, URLError, TimeoutError, OSError, json.JSONDecodeError, ValueError) as error:
+				errors.append(f"{url}: {error}")
+				print(f"Overpass failed: {type(error).__name__}: {error}", flush=True)
+				if isinstance(error, HTTPError) and error.code not in (429, 500, 502, 503, 504):
+					break
+				if attempt == 0:
+					time.sleep(5)
+
+	raise RuntimeError("All Overpass endpoints failed; " + " | ".join(errors))
 
 
 def categorize(tags):
