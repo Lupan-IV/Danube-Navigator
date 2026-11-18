@@ -1,4 +1,4 @@
-const CACHE_NAME = "danube-shell-v4-route-20261113";
+const CACHE_NAME = "danube-shell-v5-offline-labels-20261118";
 const LOCAL_FILES = [
 	"./",
 	"./index.html",
@@ -10,6 +10,12 @@ const LOCAL_FILES = [
 	"./assets/js/offline-maps.js",
 	"./data/reference-route.gpx"
 ];
+const OPTIONAL_FONT_FILES = [
+	"./assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
+	"./assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
+	"./assets/fonts/Noto%20Sans%20Regular/768-1023.pbf",
+	"./assets/fonts/Noto%20Sans%20Regular/1024-1279.pbf"
+];
 const CDN_FILES = [
 	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css",
 	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js",
@@ -20,7 +26,7 @@ self.addEventListener("install", event => {
 	event.waitUntil((async () => {
 		const cache = await caches.open(CACHE_NAME);
 		await cache.addAll(LOCAL_FILES);
-		await Promise.allSettled(CDN_FILES.map(url => cache.add(url)));
+		await Promise.allSettled([...CDN_FILES, ...OPTIONAL_FONT_FILES].map(url => cache.add(url)));
 		await self.skipWaiting();
 	})());
 });

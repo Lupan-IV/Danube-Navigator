@@ -21,6 +21,7 @@ export function onlineStyle() {
 export function offlineStyle(fileName) {
 	return {
 		version: 8,
+		glyphs: "./assets/fonts/{fontstack}/{range}.pbf",
 		sources: {
 			basemap: {
 				type: "vector",
@@ -65,6 +66,54 @@ export function offlineStyle(fileName) {
 						"#fffdfa"],
 					"line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.6, 12, 1.5, 16, 4]
 				}
+			},
+			{
+				id: "water-labels",
+				type: "symbol",
+				source: "basemap",
+				"source-layer": "water",
+				filter: ["==", ["geometry-type"], "LineString"],
+				minzoom: 11,
+				layout: {
+					"symbol-placement": "line",
+					"text-field": ["coalesce", ["get", "name"], ""],
+					"text-font": ["Noto Sans Regular"],
+					"text-size": 11,
+					"text-max-angle": 35
+				},
+				paint: { "text-color": "#477797", "text-halo-color": "#f1f6f4", "text-halo-width": 1.5 }
+			},
+			{
+				id: "road-labels",
+				type: "symbol",
+				source: "basemap",
+				"source-layer": "roads",
+				filter: ["==", ["geometry-type"], "LineString"],
+				minzoom: 13,
+				layout: {
+					"symbol-placement": "line",
+					"text-field": ["coalesce", ["get", "name"], ""],
+					"text-font": ["Noto Sans Regular"],
+					"text-size": ["interpolate", ["linear"], ["zoom"], 13, 10, 16, 13],
+					"text-max-angle": 35,
+					"symbol-spacing": 350
+				},
+				paint: { "text-color": "#5a5a55", "text-halo-color": "#f9f9f3", "text-halo-width": 2 }
+			},
+			{
+				id: "place-labels",
+				type: "symbol",
+				source: "basemap",
+				"source-layer": "places",
+				minzoom: 6,
+				layout: {
+					"text-field": ["coalesce", ["get", "name"], ""],
+					"text-font": ["Noto Sans Regular"],
+					"text-size": ["interpolate", ["linear"], ["zoom"], 6, 10, 10, 13, 15, 16],
+					"text-max-width": 8,
+					"text-optional": true
+				},
+				paint: { "text-color": "#243c4c", "text-halo-color": "#f9f9f3", "text-halo-width": 2 }
 			}
 		]
 	};

@@ -29,8 +29,8 @@ Die ZIP enthält **noch nicht** die erzeugte PMTiles-Kartendatei. Die Action ers
 ## Umfang und Grenzen
 
 - Testregion: Donaueschingen–Tuttlingen (bbox 8.43,47.89,8.91,48.15; max. native Zoomstufe 14)
-- Die Offline-Testkarte enthält derzeit keine Beschriftungen/Ortsnamen.
-- Freies Offline-Routing, große ±100-km-Korridorkarten und POIs folgen in späteren Phasen.
+- Offline-Beschriftungen für Orte, Straßennamen und Fließgewässer wurden ergänzt. Der GitHub-Workflow lädt dazu Schriftdateien in `assets/fonts/` (diese sind im ZIP noch nicht vorhanden). Dieser Schritt ist noch nicht auf GitHub getestet.
+- Freies Offline-Routing, große ±50-km-Korridorkarten und POIs folgen in späteren Phasen.
 - GPS-Aufzeichnung stoppt bei ausgeschaltetem Bildschirm möglicherweise: Android-PWA-Einschränkung.
 - Website-Daten **nicht schreddern**: Dadurch gehen OPFS-Kartenpakete und gespeicherter Tourfortschritt verloren.
 - Der Workflow braucht GitHub-Actions-Schreibrechte, weil er die Kartendatei committen soll.
@@ -46,3 +46,10 @@ Kartendaten © OpenStreetMap contributors (ODbL), aus Protomaps. Die Kartenansic
 - Die neue Route endet im Bereich Constanța (44.190461, 28.622170), nicht in Vama Veche.
 - Für Vama Veche ist noch eine Erweiterung der Strecke notwendig.
 - Cache-Version für die geänderte GPX erhöht; keine Löschung von Website-Daten erforderlich.
+
+## Kartenausschnitt / Beschriftungen
+
+- Die **aktuelle Testkarte** ist ein kleiner rechteckiger Ausschnitt (8.43–8.91° E, 47.89–48.15° N) und nicht der endgültige GPX-Korridor.
+- Für die **gesamte Tour** ist ein ±50-km-Korridor entlang der späteren GPX vorgesehen. Der entsprechende Workflow ist noch nicht implementiert. Insbesondere nahe Donaueschingen können damit Bereiche am Bodensee innerhalb des Korridors liegen.
+- Die Testkarte soll Offline-Schriften lokal unter `assets/fonts/` bekommen. Bitte die GitHub-Action nach diesem Update erneut starten und prüfen, ob die Schriftdatei `assets/fonts/Noto Sans Regular/0-255.pbf` entstanden ist.
+- `PMTiles importieren` wählt eine bereits auf dem Gerät vorhandene PMTiles-Datei aus. Für die normale Nutzung reicht `Testkarte herunterladen`.

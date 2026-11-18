@@ -46,11 +46,25 @@ jobs:
           "$(go env GOPATH)/bin/go-pmtiles" show data/maps/donau-test.pmtiles
           du -h data/maps/donau-test.pmtiles
           test "$(stat -c%s data/maps/donau-test.pmtiles)" -lt 95000000
+      - name: Schriftdateien für Offline-Karten laden
+        shell: bash
+        run: |
+          set -euo pipefail
+          font_dir="assets/fonts/Noto Sans Regular"
+          mkdir -p "$font_dir"
+          base_url="https://protomaps.github.io/basemaps-assets/fonts/Noto%20Sans%20Regular"
+          curl --fail --silent --show-error --location --retry 3 "$base_url/0-255.pbf" -o "$font_dir/0-255.pbf"
+          for font_range in 256-511 768-1023 1024-1279; do
+            if ! curl --fail --silent --show-error --location --retry 2 "$base_url/${font_range}.pbf" -o "$font_dir/${font_range}.pbf"; then
+              rm -f "$font_dir/${font_range}.pbf"
+              echo "Hinweis: Optionale Schriftzeichen ${font_range} nicht verfügbar."
+            fi
+          done
       - name: Testkarte ins Repository speichern
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/maps/donau-test.pmtiles
+          git add data/maps/donau-test.pmtiles assets/fonts
           if ! git diff --cached --quiet; then
             git commit -m "Add offline test basemap for Donaueschingen to Tuttlingen"
             git push
