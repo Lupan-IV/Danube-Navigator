@@ -1,4 +1,4 @@
-const CACHE_NAME = "danube-shell-v3-clean-20261110";
+const CACHE_NAME = "danube-shell-v4-route-20261113";
 const LOCAL_FILES = [
 	"./",
 	"./index.html",

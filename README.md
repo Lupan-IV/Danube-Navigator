@@ -4,7 +4,7 @@ Eigenständige PWA für die Donauradtour. Das alte Peaks-of-the-Balkans-Projekt 
 
 ## Enthalten
 
-- Komoot-Referenzroute: `data/reference-route.gpx` (ca. 2644 km)
+- Komoot-Referenzroute: `data/reference-route.gpx` (ca. 2648.5 km)
 - GPS-Standort, Entfernung zur Route, Restdistanz
 - Manuelle Tour starten/pausieren, lokal gespeicherte Distanz (bei geöffneter App)
 - MapLibre GL JS 5.24.0 und PMTiles 4.5.0 (kompatible Browser-Einbindung)
@@ -39,3 +39,10 @@ Die ZIP enthält **noch nicht** die erzeugte PMTiles-Kartendatei. Die Action ers
 ## Lizenz / Kartenquelle
 
 Kartendaten © OpenStreetMap contributors (ODbL), aus Protomaps. Die Kartenansicht benutzt MapLibre und PMTiles (BSD-Lizenzen). Keine massenhaften Downloads von OSM-Rasterkacheln durchführen.
+
+## Aktualisierte Referenzroute (13.11.2026)
+
+- Komoot-GPX mit 35.299 Trackpunkten, ca. 2648,5 km.
+- Die neue Route endet im Bereich Constanța (44.190461, 28.622170), nicht in Vama Veche.
+- Für Vama Veche ist noch eine Erweiterung der Strecke notwendig.
+- Cache-Version für die geänderte GPX erhöht; keine Löschung von Website-Daten erforderlich.
