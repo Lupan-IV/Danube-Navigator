@@ -17,10 +17,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: OSM-POIs für die Testregion importieren
+      - name: OSM-POIs für Ulm / Neu-Ulm importieren
         run: |
           python tools/build_outdoor_pois.py \
-            --bbox 8.43,47.89,8.91,48.15 \
+            --bbox 9.82,48.27,10.16,48.53 \
             --output data/pois/outdoor-test.geojson
       - name: POI-Datei ins Repository speichern
         run: |

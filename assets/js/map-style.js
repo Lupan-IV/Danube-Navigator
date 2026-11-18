@@ -1,6 +1,6 @@
 const OSM_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';
 
-export const TEST_BOUNDS = [[8.43, 47.89], [8.91, 48.15]];
+export const TEST_BOUNDS = [[9.82, 48.27], [10.16, 48.53]];
 
 export function onlineStyle() {
 	return {

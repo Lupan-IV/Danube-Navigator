@@ -168,7 +168,7 @@ def transform(data, bbox):
 
 def main():
 	parser = argparse.ArgumentParser(description=__doc__)
-	parser.add_argument("--bbox", default="8.43,47.89,8.91,48.15", help="west,south,east,north")
+	parser.add_argument("--bbox", default="9.82,48.27,10.16,48.53", help="west,south,east,north")
 	parser.add_argument("--output", default="data/pois/outdoor-test.geojson")
 	parser.add_argument("--input", help="Optionale vorhandene Overpass-JSON-Datei für lokale Tests")
 	args = parser.parse_args()

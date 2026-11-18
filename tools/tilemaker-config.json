@@ -1,0 +1,50 @@
+{
+	"layers": {
+		"landuse": {
+			"minzoom": 9,
+			"maxzoom": 16,
+			"simplify_below": 13,
+			"simplify_level": 4e-05
+		},
+		"water": {
+			"minzoom": 9,
+			"maxzoom": 16,
+			"simplify_below": 13,
+			"simplify_level": 2e-05
+		},
+		"buildings": {
+			"minzoom": 13,
+			"maxzoom": 16
+		},
+		"roads": {
+			"minzoom": 9,
+			"maxzoom": 16,
+			"simplify_below": 13,
+			"simplify_level": 1e-05
+		},
+		"places": {
+			"minzoom": 9,
+			"maxzoom": 16,
+			"combine_points": false
+		}
+	},
+	"settings": {
+		"minzoom": 9,
+		"maxzoom": 16,
+		"basezoom": 16,
+		"include_ids": false,
+		"compress": "gzip",
+		"name": "Danube Navigator – Ulm Z16",
+		"version": "0.1",
+		"description": "Ulm / Neu-Ulm detailed offline map for cycling. OSM via Geofabrik.",
+		"bounding_box": [
+			9.82,
+			48.27,
+			10.16,
+			48.53
+		],
+		"metadata": {
+			"attribution": "© OpenStreetMap contributors (ODbL 1.0)"
+		}
+	}
+}

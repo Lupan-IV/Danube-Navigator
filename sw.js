@@ -1,4 +1,4 @@
-const CACHE_NAME = "danube-shell-v6-outdoor-pois-20261118";
+const CACHE_NAME = "danube-shell-v8-ulm-z16-20261118";
 const LOCAL_FILES = [
 	"./",
 	"./index.html",

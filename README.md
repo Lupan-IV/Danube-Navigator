@@ -1,75 +1,39 @@
-# Danube Navigator – sauberer Projektstand (Phase 3.1)
+# Danube Navigator – Ulm/Neu-Ulm Zoom-16-Pilot (18.11.2026)
 
-Eigenständige PWA für die Donauradtour. Das alte Peaks-of-the-Balkans-Projekt bleibt unverändert.
+Komplettes GitHub-Pages-PWA-Projekt, basierend auf der vorhandenen Donau-Version. Das PoB-Projekt bleibt unberührt.
 
-## Enthalten
+## Was ist neu?
 
-- Komoot-Referenzroute: `data/reference-route.gpx` (ca. 2648.5 km)
-- GPS-Standort, Entfernung zur Route, Restdistanz
-- Manuelle Tour starten/pausieren, lokal gespeicherte Distanz (bei geöffneter App)
-- MapLibre GL JS 5.24.0 und PMTiles 4.5.0 (kompatible Browser-Einbindung)
-- Online-OSM-Karte als Fallback; regionale Offline-Testkarte in OPFS herunterladen oder importieren
-- Funktionsfähiger GitHub-Actions-Workflow zur Erzeugung von `data/maps/donau-test.pmtiles`
-- Service-Worker-Cache für PWA-Appdateien
+- Offline-Karten-Testgebiet: **Ulm / Neu-Ulm**, `9.82,48.27,10.16,48.53` (ca. 25 × 29 km).
+- Die GitHub-Action erzeugt eine eigene **Z16-PMTiles-Vektorkarte aus OSM-Rohdaten**, statt vorhandene Protomaps-Karten bis Z15 auszuschneiden.
+- Quellen: Geofabrik `tuebingen-regbez` (Baden-Württemberg) und `schwaben` (Bayern).
+- Werkzeuge: Osmium + tilemaker. Ein kleines angepasstes Kachel-Schema passt zu unserem Kartenstil (`roads`, `buildings`, `places`, `water`, `landuse`).
+- Outdoor-POI-Action arbeitet ebenfalls im Ulm-Kartenausschnitt.
+- App öffnet Ulm als Testgebiet, aber die gesamte Komoot-Referenz-GPX bleibt erhalten.
+- Neues Offline-Dateikennzeichen `danube-ulm-z16.pmtiles`, damit alte Testkarten nicht fälschlich angezeigt werden.
 
-## Sauberer GitHub-Upload
+## Installation
 
-ZIP **vollständig entpacken**. Den Inhalt von `Danube-Navigator-CLEAN` ins **Root** des Repositories hochladen. Ordnerstruktur unbedingt beibehalten. `index.html` muss direkt im Root sein, die JavaScript-Dateien in `assets/js/` und die GPX-Datei in `data/`.
+1. ZIP vollständig entpacken und **alle Dateien/Ordner mit korrekter Struktur** in das GitHub-Repository laden.
+2. GitHub → **Actions** → **Offline-Testkarte erstellen** → **Run workflow**.
+3. Prüfen, ob `data/maps/ulm-test-z16.pmtiles` nach einem **grünen** Lauf im Repository liegt. Dieser neue Workflow ist **noch nicht live ausgeführt** worden.
+4. Wenn er erfolgreich war: **Actions → Outdoor-POIs importieren → Run workflow**. Die POIs liegen anschließend in `data/pois/outdoor-test.geojson`.
+5. Nach der Veröffentlichung durch GitHub Pages die App online öffnen, **Testkarte herunterladen** antippen.
+6. Nach „Offline bereit … Z16“ Flugmodus einschalten und die App erneut öffnen. Auf der Karte sollten Straßen, Wege, Gebäude, Ortsnamen und Outdoor-POIs in Ulm/Neu-Ulm erkennbar sein.
 
-Die ZIP enthält **noch nicht** die erzeugte PMTiles-Kartendatei. Die Action erstellt sie nach dem Upload automatisch und committet sie ins Repository.
+## Technische Hinweise
 
-1. GitHub → Actions → **Offline-Testkarte erstellen** → **Run workflow**.
-2. Nach grünem Ergebnis prüfen, dass `data/maps/donau-test.pmtiles` vorhanden ist.
-3. GitHub Pages öffnen; ggf. warten, bis die neue Version veröffentlicht ist.
-4. **Testkarte herunterladen** antippen und bis **Offline bereit** warten.
-5. App schließen, Flugmodus einschalten, App erneut öffnen und in der Testregion zoomen.
+- Der Kartenbau ist ein **Experiment**. Die JSON-/JS-/Python-Dateien sind statisch geprüft, aber die externe GitHub-Action mit tilemaker muss erst auf GitHub erfolgreich laufen. Fehler bitte anhand des `build-map`-Protokolls melden.
+- Die OSM-POIs bleiben eine separate GeoJSON-Ebene. Namen auf der Basiskarte und Spezial-POIs haben verschiedene Quellen/Anzeigeverfahren.
+- Die Quelldaten kommen aus zwei Regierungsbezirken, da Ulm/Neu-Ulm an der Landesgrenze liegt. Änderungen im Build können die Paketgröße beeinflussen. Eine Datei über 95 MB wird aus Sicherheitsgründen nicht committet.
+- Die GitHub-Pages-App verwendet CDN-Bibliotheken, die bei der ersten Online-Nutzung durch den Service Worker zwischengespeichert werden. Danach können App und Karte offline geladen werden. Vor dem Offline-Test einmal online öffnen.
+- Wegen Android-Hintergrundbeschränkungen läuft die GPS-Aufzeichnung bei ausgeschaltetem Bildschirm weiterhin nicht zuverlässig.
+- Bereits gespeicherte persönliche Tourdaten nicht durch „Website-Daten schreddern“ löschen.
+- Die gesamte 2.648,5-km-Komoot-Referenzroute bleibt enthalten (einschließlich Vama Veche und Ende Constanța). Die aktuelle Karten-Testregion umfasst nur Ulm.
+- Der endgültige gesamte Offline-Korridor soll später **±50 km um die GPX** umfassen und in regionale Pakete geteilt werden. Die Ulm-Karte ist *nicht* dieser fertige Korridor.
+- Der Kartenstil ist für unseren kleinen Pilot bewusst einfach. Er ersetzt noch keine ausgereifte OSM-Navigationskarte. Offline-Routing fehlt noch.
 
-**Wichtig:** Für den allerersten Aufruf Internet bereitstellen, damit MapLibre und PMTiles geladen und durch den Service Worker zwischengespeichert werden können. Die beiden Bibliotheken stammen aus jsDelivr und sind nicht im ZIP enthalten.
+## Quellennachweise
 
-## Umfang und Grenzen
-
-- Testregion: Donaueschingen–Tuttlingen (bbox 8.43,47.89,8.91,48.15; max. native Zoomstufe 14)
-- Offline-Beschriftungen für Orte, Straßennamen und Fließgewässer wurden ergänzt. Der GitHub-Workflow lädt dazu Schriftdateien in `assets/fonts/` (diese sind im ZIP noch nicht vorhanden). Dieser Schritt ist noch nicht auf GitHub getestet.
-- Freies Offline-Routing, große ±50-km-Korridorkarten und POIs folgen in späteren Phasen.
-- GPS-Aufzeichnung stoppt bei ausgeschaltetem Bildschirm möglicherweise: Android-PWA-Einschränkung.
-- Website-Daten **nicht schreddern**: Dadurch gehen OPFS-Kartenpakete und gespeicherter Tourfortschritt verloren.
-- Der Workflow braucht GitHub-Actions-Schreibrechte, weil er die Kartendatei committen soll.
-- `data/maps/.gitkeep` hält das Verzeichnis in Git, bis die Kartendatei erzeugt wurde.
-
-## Lizenz / Kartenquelle
-
-Kartendaten © OpenStreetMap contributors (ODbL), aus Protomaps. Die Kartenansicht benutzt MapLibre und PMTiles (BSD-Lizenzen). Keine massenhaften Downloads von OSM-Rasterkacheln durchführen.
-
-## Aktualisierte Referenzroute (13.11.2026)
-
-- Komoot-GPX mit 35.299 Trackpunkten, ca. 2648,5 km.
-- Die neue Route endet im Bereich Constanța (44.190461, 28.622170), nicht in Vama Veche.
-- Für Vama Veche ist noch eine Erweiterung der Strecke notwendig.
-- Cache-Version für die geänderte GPX erhöht; keine Löschung von Website-Daten erforderlich.
-
-## Kartenausschnitt / Beschriftungen
-
-- Die **aktuelle Testkarte** ist ein kleiner rechteckiger Ausschnitt (8.43–8.91° E, 47.89–48.15° N) und nicht der endgültige GPX-Korridor.
-- Für die **gesamte Tour** ist ein ±50-km-Korridor entlang der späteren GPX vorgesehen. Der entsprechende Workflow ist noch nicht implementiert. Insbesondere nahe Donaueschingen können damit Bereiche am Bodensee innerhalb des Korridors liegen.
-- Die Testkarte soll Offline-Schriften lokal unter `assets/fonts/` bekommen. Bitte die GitHub-Action nach diesem Update erneut starten und prüfen, ob die Schriftdatei `assets/fonts/Noto Sans Regular/0-255.pbf` entstanden ist.
-- `PMTiles importieren` wählt eine bereits auf dem Gerät vorhandene PMTiles-Datei aus. Für die normale Nutzung reicht `Testkarte herunterladen`.
-
-## Outdoor-POIs – Testregion (Phase 5, vorgezogen)
-
-Schutzhütten, Wildnishütten, Höhlen, Felsüberhänge, Feuerstellen, Picknickplätze, Burgruinen und andere Ruinen werden aus OpenStreetMap in einer **separaten, vollständig offlinefähigen GeoJSON-Ebene** angezeigt. Die Karte selbst bleibt unverändert; POIs funktionieren unabhängig von der Zoomstufe der PMTiles-Datenquelle. Aktuell erscheinen die Punkte ab Anzeigezoom 10.
-
-**Einmaliger Import über GitHub:**
-
-1. Die neue Datei `.github/workflows/import-outdoor-pois.yml` **und** `tools/build_outdoor_pois.py` mit der ursprünglichen Ordnerstruktur hochladen (im vollständigen ZIP enthalten).
-2. GitHub → Actions → **Outdoor-POIs importieren** → **Run workflow**.
-3. Nach grünem Ergebnis die erzeugte Datei `data/pois/outdoor-test.geojson` im Repository kontrollieren.
-4. GitHub Pages öffnen; falls noch die alte Version erscheint, Veröffentlichung abwarten. App online öffnen, bis „Outdoor-POIs geladen“ erscheint.
-5. Danach im **Flugmodus** testen (App erneut öffnen, Testgebiet vergrößern, POIs antippen und Kategorien ausschalten).
-
-**Wichtig:** Das Script ruft die öffentliche Overpass API **einmal pro manueller GitHub-Action** auf. Bei Ausfall oder Rate-Limiting wird der Workflow rot; es werden **keine erfundenen Testpunkte veröffentlicht**. Die Zählung der wirklich gefundenen Orte steht im Actions-Protokoll und in der GeoJSON-Datei unter `metadata.counts`.
-
-Das ODS-/uMap-Schutzhüttenverzeichnis wurde **noch nicht integriert**: Für einen vollständigen Import werden ein tatsächlicher Datenauszug und die Nutzungsrechte an den zusätzlichen Beschreibungen/Fotos benötigt. OSM-Einträge enthalten nicht zwingend alle vor Ort existierenden Orte; POI-Einträge garantieren weder Zugänglichkeit noch legalen Aufenthalt oder Feuer.
-
-Quellenangabe: © OpenStreetMap-Mitwirkende, Daten unter ODbL 1.0. Der OSM-Link jedes POIs wird in der App angeboten, solange Internet vorhanden ist.
-
-**Entwicklungsprüfung:** `python -m unittest discover -s tests -v`
+Kartendaten © OpenStreetMap contributors, ODbL 1.0; Geofabrik-Extrakte: `download.geofabrik.de`.
+Die PMTiles werden mit `systemed/tilemaker` erstellt. Eine zusätzliche Lizenz-/Attributionsprüfung ist vor einer breiten Veröffentlichung vorzunehmen.

@@ -9,63 +9,89 @@ permissions:
 jobs:
   build-map:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
+      - name: Osmium-Werkzeug installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y osmium-tool
+      - name: OSM-Rohdaten aus Geofabrik laden
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp data/maps
+          curl --fail --location --retry 3 --show-error --progress-bar \
+            https://download.geofabrik.de/europe/germany/baden-wuerttemberg/tuebingen-regbez-latest.osm.pbf \
+            -o tmp/tuebingen.osm.pbf
+          curl --fail --location --retry 3 --show-error --progress-bar \
+            https://download.geofabrik.de/europe/germany/bayern/schwaben-latest.osm.pbf \
+            -o tmp/schwaben.osm.pbf
+          osmium fileinfo -e tmp/tuebingen.osm.pbf | head -20
+          osmium fileinfo -e tmp/schwaben.osm.pbf | head -20
+      - name: Daten beider Bundeslaender fuer Ulm zusammenfuehren
+        shell: bash
+        run: |
+          set -euo pipefail
+          osmium merge tmp/tuebingen.osm.pbf tmp/schwaben.osm.pbf \
+            -o tmp/merged.osm.pbf -O
+          osmium extract -b 9.82,48.27,10.16,48.53 \
+            --strategy=smart tmp/merged.osm.pbf -o tmp/ulm.osm.pbf -O
+          osmium fileinfo -e tmp/ulm.osm.pbf | head -30
+      - name: Echte Zoom-16-Vektorkarte mit tilemaker erzeugen
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --pull always \
+            -v "$PWD:/data" -w /data ghcr.io/systemed/tilemaker:master \
+            /data/tmp/ulm.osm.pbf \
+            --output /data/data/maps/ulm-test-z16.pmtiles \
+            --config /data/tools/tilemaker-config.json \
+            --process /data/tools/tilemaker-process.lua \
+            --bbox 9.82,48.27,10.16,48.53
+          test -s data/maps/ulm-test-z16.pmtiles
+          du -h data/maps/ulm-test-z16.pmtiles
+          bytes=$(stat -c%s data/maps/ulm-test-z16.pmtiles)
+          if (( bytes >= 95000000 )); then
+            echo "::error::Ulm-PMTiles ist ${bytes} Bytes gross (GitHub-Limit). Testgebiet verkleinern."
+            exit 1
+          fi
       - name: Go installieren
         uses: actions/setup-go@v5
         with:
           go-version: "1.25"
-      - name: PMTiles-Werkzeug installieren
-        run: go install github.com/protomaps/go-pmtiles@v1.31.2
-      - name: Aktuelle Protomaps-Kartenquelle finden
-        id: source
+      - name: PMTiles-Datei pruefen
         shell: bash
         run: |
           set -euo pipefail
-          for days_back in $(seq 0 13); do
-            build_date=$(date -u -d "${days_back} days ago" +%Y%m%d)
-            source_url="https://build.protomaps.com/${build_date}.pmtiles"
-            if curl --silent --fail --location --head --max-time 15 "$source_url" > /dev/null; then
-              echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
-              echo "Gefundener Protomaps-Build: $build_date"
-              exit 0
-            fi
-          done
-          echo "::error::Keine verfügbare Protomaps-Kartenquelle in den letzten 14 Tagen gefunden."
-          exit 1
-      - name: Donaueschingen-Tuttlingen ausschneiden
-        run: |
-          mkdir -p data/maps
-          "$(go env GOPATH)/bin/go-pmtiles" extract \
-            "${{ steps.source.outputs.source_url }}" \
-            data/maps/donau-test.pmtiles \
-            --bbox=8.43,47.89,8.91,48.15 \
-            --maxzoom=14
-          "$(go env GOPATH)/bin/go-pmtiles" show data/maps/donau-test.pmtiles
-          du -h data/maps/donau-test.pmtiles
-          test "$(stat -c%s data/maps/donau-test.pmtiles)" -lt 95000000
-      - name: Schriftdateien für Offline-Karten laden
+          go install github.com/protomaps/go-pmtiles@v1.31.2
+          "$(go env GOPATH)/bin/go-pmtiles" show data/maps/ulm-test-z16.pmtiles
+          "$(go env GOPATH)/bin/go-pmtiles" verify data/maps/ulm-test-z16.pmtiles
+      - name: Schriftdateien fuer Offline-Beschriftungen laden
         shell: bash
         run: |
           set -euo pipefail
           font_dir="assets/fonts/Noto Sans Regular"
           mkdir -p "$font_dir"
           base_url="https://protomaps.github.io/basemaps-assets/fonts/Noto%20Sans%20Regular"
-          curl --fail --silent --show-error --location --retry 3 "$base_url/0-255.pbf" -o "$font_dir/0-255.pbf"
+          curl --fail --silent --show-error --location --retry 3 \
+            "$base_url/0-255.pbf" -o "$font_dir/0-255.pbf"
           for font_range in 256-511 768-1023 1024-1279; do
-            if ! curl --fail --silent --show-error --location --retry 2 "$base_url/${font_range}.pbf" -o "$font_dir/${font_range}.pbf"; then
+            if ! curl --fail --silent --show-error --location --retry 2 \
+              "$base_url/${font_range}.pbf" -o "$font_dir/${font_range}.pbf"; then
               rm -f "$font_dir/${font_range}.pbf"
-              echo "Hinweis: Optionale Schriftzeichen ${font_range} nicht verfügbar."
+              echo "Optionale Zeichen ${font_range} nicht verfuegbar."
             fi
           done
       - name: Testkarte ins Repository speichern
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/maps/donau-test.pmtiles assets/fonts
+          git add data/maps/ulm-test-z16.pmtiles assets/fonts
           if ! git diff --cached --quiet; then
-            git commit -m "Add offline test basemap for Donaueschingen to Tuttlingen"
+            git commit -m "Build Ulm Z16 offline test map"
             git push
           fi

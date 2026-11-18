@@ -1,7 +1,7 @@
 import { offlineStyle, onlineStyle } from "./map-style.js";
 
-const FILE_NAME = "danube-test.pmtiles";
-const DOWNLOAD_URL = "./data/maps/donau-test.pmtiles";
+const FILE_NAME = "danube-ulm-z16.pmtiles";
+const DOWNLOAD_URL = "./data/maps/ulm-test-z16.pmtiles";
 
 const state = document.getElementById("offline-state");
 const note = document.getElementById("offline-note");
@@ -55,12 +55,12 @@ async function showLocalMap(file) {
 	const metadata = await archive.getMetadata();
 	const layers = (metadata?.vector_layers || []).map(layer => layer.id);
 	if (layers.length && !layers.includes("roads")) {
-		throw new Error("Diese PMTiles-Datei ist keine kompatible Protomaps-Basiskarte (Layer 'roads' fehlt).");
+		throw new Error("Diese PMTiles-Datei ist keine kompatible Donau-Basiskarte (Layer 'roads' fehlt).");
 	}
 	protocol.add(archive);
 	currentArchive = archive;
 	map.setStyle(offlineStyle(file.name));
-	state.textContent = `Offline bereit · ${readableSize(file.size)} · Zoom bis ${header.maxZoom}`;
+	state.textContent = `Offline bereit · ${readableSize(file.size)} · Kartendaten bis Z${header.maxZoom} · Ansicht bis Z19`;
 	note.textContent = "Die Karte wird direkt vom Smartphone gelesen. Test: Flugmodus aktivieren und die App neu öffnen. Außerhalb des Kartenpakets bleibt der Hintergrund leer.";
 	deleteButton.hidden = false;
 }
@@ -143,7 +143,7 @@ async function downloadMap() {
 		const response = await fetch(DOWNLOAD_URL, { cache: "no-store" });
 		if (!response.ok) {
 			if (response.status === 404) {
-				throw new Error("Testkarte fehlt noch auf GitHub. Zuerst den Workflow 'Offline-Testkarte erstellen' unter Actions ausführen.");
+				throw new Error("Ulm-Testkarte fehlt noch auf GitHub. Zuerst den Workflow 'Offline-Testkarte erstellen' unter Actions ausführen.");
 			}
 			throw new Error(`Karten-Download fehlgeschlagen (HTTP ${response.status}).`);
 		}

@@ -6,7 +6,7 @@ import { initializeOutdoorPOIs } from "./outdoor-pois.js";
 const STORAGE_KEY = "danubeTourProgressV1";
 const map = new maplibregl.Map({
 	container: "map",
-	center: [8.6, 48.0],
+	center: [9.993, 48.401],
 	zoom: 9,
 	style: onlineStyle(),
 	maxZoom: 19
