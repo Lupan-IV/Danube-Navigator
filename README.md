@@ -53,3 +53,23 @@ Kartendaten © OpenStreetMap contributors (ODbL), aus Protomaps. Die Kartenansic
 - Für die **gesamte Tour** ist ein ±50-km-Korridor entlang der späteren GPX vorgesehen. Der entsprechende Workflow ist noch nicht implementiert. Insbesondere nahe Donaueschingen können damit Bereiche am Bodensee innerhalb des Korridors liegen.
 - Die Testkarte soll Offline-Schriften lokal unter `assets/fonts/` bekommen. Bitte die GitHub-Action nach diesem Update erneut starten und prüfen, ob die Schriftdatei `assets/fonts/Noto Sans Regular/0-255.pbf` entstanden ist.
 - `PMTiles importieren` wählt eine bereits auf dem Gerät vorhandene PMTiles-Datei aus. Für die normale Nutzung reicht `Testkarte herunterladen`.
+
+## Outdoor-POIs – Testregion (Phase 5, vorgezogen)
+
+Schutzhütten, Wildnishütten, Höhlen, Felsüberhänge, Feuerstellen, Picknickplätze, Burgruinen und andere Ruinen werden aus OpenStreetMap in einer **separaten, vollständig offlinefähigen GeoJSON-Ebene** angezeigt. Die Karte selbst bleibt unverändert; POIs funktionieren unabhängig von der Zoomstufe der PMTiles-Datenquelle. Aktuell erscheinen die Punkte ab Anzeigezoom 10.
+
+**Einmaliger Import über GitHub:**
+
+1. Die neue Datei `.github/workflows/import-outdoor-pois.yml` **und** `tools/build_outdoor_pois.py` mit der ursprünglichen Ordnerstruktur hochladen (im vollständigen ZIP enthalten).
+2. GitHub → Actions → **Outdoor-POIs importieren** → **Run workflow**.
+3. Nach grünem Ergebnis die erzeugte Datei `data/pois/outdoor-test.geojson` im Repository kontrollieren.
+4. GitHub Pages öffnen; falls noch die alte Version erscheint, Veröffentlichung abwarten. App online öffnen, bis „Outdoor-POIs geladen“ erscheint.
+5. Danach im **Flugmodus** testen (App erneut öffnen, Testgebiet vergrößern, POIs antippen und Kategorien ausschalten).
+
+**Wichtig:** Das Script ruft die öffentliche Overpass API **einmal pro manueller GitHub-Action** auf. Bei Ausfall oder Rate-Limiting wird der Workflow rot; es werden **keine erfundenen Testpunkte veröffentlicht**. Die Zählung der wirklich gefundenen Orte steht im Actions-Protokoll und in der GeoJSON-Datei unter `metadata.counts`.
+
+Das ODS-/uMap-Schutzhüttenverzeichnis wurde **noch nicht integriert**: Für einen vollständigen Import werden ein tatsächlicher Datenauszug und die Nutzungsrechte an den zusätzlichen Beschreibungen/Fotos benötigt. OSM-Einträge enthalten nicht zwingend alle vor Ort existierenden Orte; POI-Einträge garantieren weder Zugänglichkeit noch legalen Aufenthalt oder Feuer.
+
+Quellenangabe: © OpenStreetMap-Mitwirkende, Daten unter ODbL 1.0. Der OSM-Link jedes POIs wird in der App angeboten, solange Internet vorhanden ist.
+
+**Entwicklungsprüfung:** `python -m unittest discover -s tests -v`

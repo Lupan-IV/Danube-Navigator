@@ -1,0 +1,33 @@
+name: Outdoor-POIs importieren
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-pois:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Python installieren
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: OSM-POIs für die Testregion importieren
+        run: |
+          python tools/build_outdoor_pois.py \
+            --bbox 8.43,47.89,8.91,48.15 \
+            --output data/pois/outdoor-test.geojson
+      - name: POI-Datei ins Repository speichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/pois/outdoor-test.geojson
+          if ! git diff --cached --quiet; then
+            git commit -m "Update offline outdoor POIs for test region"
+            git push
+          fi

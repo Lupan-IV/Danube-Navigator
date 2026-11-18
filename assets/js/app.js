@@ -1,6 +1,7 @@
 import { parseGpx, closestRoutePosition, distanceKm } from "./route.js";
 import { onlineStyle, TEST_BOUNDS } from "./map-style.js";
 import { initializeOfflineMaps } from "./offline-maps.js";
+import { initializeOutdoorPOIs } from "./outdoor-pois.js";
 
 const STORAGE_KEY = "danubeTourProgressV1";
 const map = new maplibregl.Map({
@@ -245,4 +246,5 @@ if ("serviceWorker" in navigator) {
 	}));
 }
 
+initializeOutdoorPOIs(map);
 initialize();
