@@ -2,52 +2,50 @@
 <html lang="de">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-	<meta name="theme-color" content="#10202d">
-	<title>Donau Offlinekarte</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+	<meta name="theme-color" content="#143b4b">
+	<meta name="description" content="Offline-Donaukarte mit GPX-Route, POIs und GPS">
 	<link rel="manifest" href="./manifest.webmanifest">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-	<link rel="stylesheet" href="./assets/css/app.css">
+	<link rel="stylesheet" href="./vendor/maplibre-gl.css">
+	<link rel="stylesheet" href="./style.css">
+	<title>Donau Offlinekarte</title>
 </head>
 <body>
-	<header>
-		<div class="brand">
-			<strong>Donau Offlinekarte</strong>
-			<small>OSM · POIs · GPS</small>
+	<div id="map" aria-label="Donaukarte"></div>
+	<header class="topbar">
+		<span class="brand">Donau <span>Offlinekarte</span></span>
+		<div class="topbar-actions">
+			<button id="poi-toggle" type="button" aria-controls="poi-panel">POIs</button>
+			<button id="storage-toggle" type="button" aria-controls="storage-panel">Karte</button>
 		</div>
-		<button id="locate" type="button">GPS anzeigen</button>
 	</header>
-	<main>
-		<div id="map" role="application" aria-label="Offlinekarte mit GPS-Standort und POIs"></div>
-		<div class="map-actions">
-			<button id="view-test" type="button">Ulm zeigen</button>
-			<button id="toggle-panel" type="button">Karte & POIs</button>
-		</div>
-		<div id="map-message" role="status" aria-live="polite">Karte wird geladen …</div>
-		<section id="panel" aria-label="Offlinekarten und Points of Interest" hidden>
-			<div class="panel-header">
-				<strong>Offlinekarte</strong>
-				<button id="close-panel" class="text-button" type="button" aria-label="Menü schließen">Schließen</button>
-			</div>
-			<p id="offline-state">Prüfe lokale Kartendaten …</p>
-			<div class="buttons">
-				<button id="download-map" type="button">Ulm-Testkarte laden</button>
-				<button id="import-map" class="secondary" type="button">PMTiles-Datei importieren</button>
-				<input id="map-file" type="file" accept=".pmtiles" hidden>
-				<button id="delete-map" class="secondary" type="button" hidden>Offlinekarte löschen</button>
-			</div>
-			<progress id="download-progress" value="0" max="100" hidden></progress>
-			<p id="offline-note" class="help">Aktuell ist nur das Testpaket Ulm vorbereitet. Für die gesamte Donauroute werden separate Offline-Pakete benötigt.</p>
-			<div class="panel-header poititle">
-				<strong>Points of Interest</strong>
-				<span id="outdoor-poi-state">Lade POIs …</span>
-			</div>
-			<div id="outdoor-poi-filters" aria-label="POI-Kategorien ein- und ausschalten"></div>
-			<p class="help">OSM-Angaben sind nicht vor Ort geprüft. Schutzhütten bedeuten keine Übernachtungserlaubnis; Feuerstellen keine Feuerfreigabe.</p>
-		</section>
-	</main>
-	<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
-	<script type="module" src="./assets/js/app.js"></script>
+	<div id="status" class="status" role="status">Initialisierung …</div>
+	<div class="floating-controls">
+		<button id="home" title="Gesamte Route anzeigen" aria-label="Gesamte Route anzeigen">⌖</button>
+		<button id="gps" title="GPS einschalten" aria-label="GPS einschalten">◎</button>
+	</div>
+	<aside id="poi-panel" class="panel hidden">
+		<div class="panel-title"><strong>Points of Interest</strong><button class="close" data-close="poi-panel" aria-label="Schließen">×</button></div>
+		<p class="hint">OSM-POIs aus der Karte. Bei hoher Vergrößerung sind mehr Punkte sichtbar. Nicht alle OSM-Objekte sind im Basiskartenpaket enthalten.</p>
+		<div id="poi-list" class="categories"></div>
+	</aside>
+	<aside id="storage-panel" class="panel hidden">
+		<div class="panel-title"><strong>Offline-Kartenverwaltung</strong><button class="close" data-close="storage-panel" aria-label="Schließen">×</button></div>
+		<p class="hint">Ein PMTiles-Kartenpaket wird dauerhaft im lokalen App-Speicher abgelegt. Karten bleiben beim Browser-Neustart erhalten, solange die Websitedaten nicht gelöscht werden.</p>
+		<p id="storage-info" class="storage-info">Noch keine Karte gespeichert.</p>
+		<label for="map-file" class="file-label">PMTiles-Datei auswählen</label>
+		<input id="map-file" type="file" accept=".pmtiles">
+		<p class="hint">Oder eine direkt erreichbare PMTiles-Datei herunterladen (Server benötigt CORS):</p>
+		<input id="map-url" type="url" placeholder="https://…/donau.pmtiles" aria-label="PMTiles-Downloadadresse">
+		<div class="button-row"><button id="download">Herunterladen</button><button id="remove" class="danger" disabled>Karte löschen</button></div>
+		<progress id="progress" class="hidden" value="0" max="100"></progress>
+		<p id="download-status" class="hint" aria-live="polite"></p>
+		<p class="hint">Benötigt ausreichend freien Speicher. Bei sehr großen Downloads können Browser-Speicherlimits oder Verbindungsabbrüche auftreten.</p>
+	</aside>
+	<div id="attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://protomaps.com/" target="_blank" rel="noopener">Protomaps</a></div>
+	<script src="./vendor/maplibre-gl.js"></script>
+	<script src="./vendor/pmtiles.js"></script>
+	<script src="./vendor/basemaps.js"></script>
+	<script src="./app.js"></script>
 </body>
 </html>

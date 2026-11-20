@@ -1,77 +1,52 @@
-const CACHE_NAME = "danube-minimal-v2-20261120";
-const REQUIRED = [
-	"./",
-	"./index.html",
-	"./manifest.webmanifest",
-	"./assets/css/app.css",
-	"./assets/js/app.js",
-	"./assets/js/offline-maps.js",
-	"./assets/js/map-style.js",
-	"./assets/js/outdoor-pois.js"
+/* Never cache the giant PMTiles archive here. It lives separately in OPFS. */
+const VERSION = 'danube-app-v1';
+const CORE = [
+	'./', './index.html', './app.js', './style.css', './route.geojson',
+	'./manifest.webmanifest', './icon-192.png', './icon-512.png', './vendor/maplibre-gl.js',
+	'./vendor/maplibre-gl.css', './vendor/pmtiles.js',
+	'./vendor/basemaps.js',
+	'./assets/sprites/v4/light.json', './assets/sprites/v4/light.png',
+	'./assets/sprites/v4/light@2x.json', './assets/sprites/v4/light@2x.png'
 ];
-const OPTIONAL = [
-	"./data/pois/outdoor-test.geojson",
-	"./assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
-	"./assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
-	"./assets/fonts/Noto%20Sans%20Regular/768-1023.pbf",
-	"./assets/fonts/Noto%20Sans%20Regular/1024-1279.pbf"
-];
-const CDN = [
-	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css",
-	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js",
-	"https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"
-];
-
-self.addEventListener("install", event => {
+const FONTS = ['Noto Sans Regular', 'Noto Sans Medium', 'Noto Sans Italic'];
+const RANGES = ['0-255','256-511','512-767','768-1023','1024-1279','1280-1535','7680-7935','8192-8447'];
+for (const font of FONTS) {
+	for (const range of RANGES) {
+		CORE.push(`./assets/fonts/${encodeURIComponent(font)}/${range}.pbf`);
+	}
+}
+self.addEventListener('install', event => {
 	event.waitUntil((async () => {
-		const cache = await caches.open(CACHE_NAME);
-		await cache.addAll(REQUIRED);
-		await Promise.allSettled([...OPTIONAL, ...CDN].map(url => cache.add(url)));
+		const cache = await caches.open(VERSION);
+		for (const path of CORE) {
+			await cache.add(new Request(path, {cache: 'reload'}));
+		}
 		await self.skipWaiting();
 	})());
 });
-
-self.addEventListener("activate", event => {
+self.addEventListener('activate', event => {
 	event.waitUntil((async () => {
-		const keys = await caches.keys();
-		await Promise.all(keys.filter(name => name.startsWith("danube-") && name !== CACHE_NAME).map(name => caches.delete(name)));
+		for (const key of await caches.keys()) {
+			if (key.startsWith('danube-app-') && key !== VERSION) await caches.delete(key);
+		}
 		await self.clients.claim();
 	})());
 });
-
-self.addEventListener("fetch", event => {
-	if (event.request.method !== "GET") {
-		return;
-	}
-	const url = new URL(event.request.url);
-	if (url.pathname.endsWith(".pmtiles") || url.hostname === "tile.openstreetmap.org") {
-		return;
-	}
-	const local = url.origin === self.location.origin;
-	const cdn = CDN.includes(url.href);
-	if (!local && !cdn) {
-		return;
-	}
+self.addEventListener('fetch', event => {
+	const request = event.request;
+	if (request.method !== 'GET') return;
+	const url = new URL(request.url);
+	if (url.origin !== self.location.origin || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
+	if (url.pathname.endsWith('.pmtiles')) return;
 	event.respondWith((async () => {
-		const cache = await caches.open(CACHE_NAME);
-		if (cdn) {
-			const cached = await cache.match(event.request);
-			if (cached) {
-				return cached;
-			}
-		}
+		const cache = await caches.open(VERSION);
 		try {
-			const response = await fetch(event.request);
-			if (response.ok) {
-				await cache.put(event.request, response.clone());
-			}
+			const response = await fetch(request);
+			if (response.ok && response.type === 'basic') await cache.put(request, response.clone());
 			return response;
-		} catch (error) {
-			const cached = await cache.match(event.request);
-			if (cached) {
-				return cached;
-			}
-			throw error;
+		} catch {
+			const cached = await cache.match(request, {ignoreSearch: true});
+			return cached || Response.error();
 		}
 	})());
 });

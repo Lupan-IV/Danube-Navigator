@@ -1,4 +1,2 @@
-__pycache__/
-*.pyc
-tmp/
-.DS_Store
+# Very large generated map: do not put this on GitHub Pages.
+*.pmtiles
