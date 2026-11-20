@@ -22,14 +22,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p tmp data/maps
-          curl --fail --location --retry 3 --show-error --progress-bar \
-            https://download.geofabrik.de/europe/germany/baden-wuerttemberg/tuebingen-regbez-latest.osm.pbf \
-            -o tmp/tuebingen.osm.pbf
-          curl --fail --location --retry 3 --show-error --progress-bar \
-            https://download.geofabrik.de/europe/germany/bayern/schwaben-latest.osm.pbf \
-            -o tmp/schwaben.osm.pbf
-          osmium fileinfo -e tmp/tuebingen.osm.pbf | head -20
-          osmium fileinfo -e tmp/schwaben.osm.pbf | head -20
+          python3 tools/download_osm.py --region tuebingen --output tmp/tuebingen.osm.pbf
+          python3 tools/download_osm.py --region schwaben --output tmp/schwaben.osm.pbf
+          osmium fileinfo -e tmp/tuebingen.osm.pbf
+          osmium fileinfo -e tmp/schwaben.osm.pbf
       - name: Daten beider Bundeslaender fuer Ulm zusammenfuehren
         shell: bash
         run: |

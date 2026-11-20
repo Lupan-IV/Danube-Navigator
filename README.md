@@ -4,7 +4,7 @@ Eine kleine Offline-Web-App für **Karte + Points of Interest + GPS-Standortmark
 
 ## Stand
 
-- **Funktionierender Prototyp für Ulm/Neu-Ulm**: Kartenpaket wird in der GitHub-Action erstellt (nicht in diesem ZIP enthalten).
+- **Ulm/Neu-Ulm-Testprototyp**: Das Kartenpaket wird durch GitHub Actions erzeugt (nicht im ZIP enthalten). Der vollständige Kartenbau wurde noch nicht erfolgreich getestet.
 - **Offlinekarte**: MapLibre, PMTiles und Speicherung im Browser-Dateisystem (OPFS).
 - **POIs**: OpenStreetMap-Orte werden aus Geofabrik-Rohdaten extrahiert und als GeoJSON im Repository gespeichert.
 - **GPS**: Der aktuelle Standort wird als blauer Punkt dargestellt, solange die App geöffnet ist. **Kein Tracking**, kein Speichern von Positionen.
@@ -18,6 +18,8 @@ Eine kleine Offline-Web-App für **Karte + Points of Interest + GPS-Standortmark
 4. GitHub Pages unter Settings → Pages für `main / (root)` aktivieren.
 5. Die App auf dem Handy **online** laden. Unter **Karte & POIs** die **Ulm-Testkarte laden**.
 6. App erneut öffnen, Flugmodus einschalten und Ulm ansehen. GPS lässt sich bei Bedarf einschalten.
+
+Der Rohdaten-Download nutzt jetzt einen Ersatzserver und datierte Geofabrik-Dateien, wenn die aktuelle Datei nicht erreichbar ist. Die GitHub-Action muss nach dem Upload erneut gestartet werden.
 
 **Wichtig:** Der zweite GitHub-Workflow kann auch später laufen; dann zeigt die App bis dahin keine POIs an. Ein neuer Commit der Workflows erzeugt keine Daten automatisch. Beide Workflows müssen manuell gestartet werden. Bei einem Neuaufsetzen des Repositories die Action erneut ausführen.
 

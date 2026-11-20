@@ -1,4 +1,4 @@
-const CACHE_NAME = "danube-minimal-v1-20261120";
+const CACHE_NAME = "danube-minimal-v2-20261120";
 const REQUIRED = [
 	"./",
 	"./index.html",
