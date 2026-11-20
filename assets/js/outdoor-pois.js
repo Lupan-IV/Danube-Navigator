@@ -1,6 +1,16 @@
 const POI_URL = "./data/pois/outdoor-test.geojson";
 
 const CATEGORIES = {
+	water: { label: "Trinkwasser", color: "#2780cf" },
+	shop: { label: "Supermärkte", color: "#e37c33" },
+	bakery: { label: "Bäckereien", color: "#b97138" },
+	food: { label: "Essen & Cafés", color: "#db6157" },
+	camp: { label: "Camping", color: "#589f58" },
+	lodging: { label: "Unterkünfte", color: "#855cb3" },
+	bike: { label: "Radservice", color: "#336eae" },
+	toilets: { label: "Toiletten", color: "#577a9c" },
+	transport: { label: "Bahnhof / Fähre", color: "#616b8a" },
+	medical: { label: "Apotheke / Arzt", color: "#cc536a" },
 	shelter: { label: "Schutzhütten", color: "#3c8d57" },
 	wilderness_hut: { label: "Wildnishütten", color: "#206b40" },
 	cave: { label: "Höhlen", color: "#7351a1" },
@@ -8,7 +18,9 @@ const CATEGORIES = {
 	firepit: { label: "Feuerstellen", color: "#d96b29" },
 	picnic: { label: "Picknickplätze", color: "#83a838" },
 	castle_ruin: { label: "Burgruinen", color: "#b14f65" },
-	ruin: { label: "Sonstige Ruinen", color: "#87677a" }
+	ruin: { label: "Sonstige Ruinen", color: "#87677a" },
+	scenic: { label: "Sehenswertes", color: "#b0a041" },
+	beach: { label: "Badestellen", color: "#2d9b9f" }
 };
 
 const SOURCE_ID = "outdoor-pois";
@@ -71,9 +83,9 @@ function drawLayer() {
 			minzoom: 10,
 			paint: {
 				"circle-color": categoryColorExpression(),
-				"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 3.5, 13, 5.5, 16, 8],
+				"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 3, 13, 4.5, 16, 7],
 				"circle-stroke-color": "#ffffff",
-				"circle-stroke-width": 1.6,
+				"circle-stroke-width": 1.2,
 				"circle-opacity": 0.95
 			}
 		});

@@ -1,11 +1,10 @@
 {
-	"name": "Danube Navigator",
-	"short_name": "Danube",
-	"id": "./",
+	"name": "Donau Offlinekarte",
+	"short_name": "Donau Karte",
 	"start_url": "./",
 	"scope": "./",
 	"display": "standalone",
-	"background_color": "#111b25",
-	"theme_color": "#111b25",
-	"description": "Offline-first bicycle touring companion for the Danube"
+	"background_color": "#10202d",
+	"theme_color": "#10202d",
+	"description": "Offline-OSM-Karte mit GPS-Standort und lokalen POIs."
 }

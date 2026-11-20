@@ -1,26 +1,22 @@
-const CACHE_NAME = "danube-shell-v8-ulm-z16-20261118";
-const LOCAL_FILES = [
+const CACHE_NAME = "danube-minimal-v1-20261120";
+const REQUIRED = [
 	"./",
 	"./index.html",
 	"./manifest.webmanifest",
 	"./assets/css/app.css",
 	"./assets/js/app.js",
-	"./assets/js/route.js",
-	"./assets/js/map-style.js",
 	"./assets/js/offline-maps.js",
-	"./assets/js/outdoor-pois.js",
-	"./data/reference-route.gpx"
+	"./assets/js/map-style.js",
+	"./assets/js/outdoor-pois.js"
 ];
-const OPTIONAL_FONT_FILES = [
+const OPTIONAL = [
+	"./data/pois/outdoor-test.geojson",
 	"./assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
 	"./assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
 	"./assets/fonts/Noto%20Sans%20Regular/768-1023.pbf",
 	"./assets/fonts/Noto%20Sans%20Regular/1024-1279.pbf"
 ];
-const OPTIONAL_POI_FILES = [
-	"./data/pois/outdoor-test.geojson"
-];
-const CDN_FILES = [
+const CDN = [
 	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css",
 	"https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js",
 	"https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"
@@ -29,8 +25,8 @@ const CDN_FILES = [
 self.addEventListener("install", event => {
 	event.waitUntil((async () => {
 		const cache = await caches.open(CACHE_NAME);
-		await cache.addAll(LOCAL_FILES);
-		await Promise.allSettled([...CDN_FILES, ...OPTIONAL_FONT_FILES, ...OPTIONAL_POI_FILES].map(url => cache.add(url)));
+		await cache.addAll(REQUIRED);
+		await Promise.allSettled([...OPTIONAL, ...CDN].map(url => cache.add(url)));
 		await self.skipWaiting();
 	})());
 });
@@ -38,7 +34,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
 	event.waitUntil((async () => {
 		const keys = await caches.keys();
-		await Promise.all(keys.filter(key => key.startsWith("danube-shell-") && key !== CACHE_NAME).map(key => caches.delete(key)));
+		await Promise.all(keys.filter(name => name.startsWith("danube-") && name !== CACHE_NAME).map(name => caches.delete(name)));
 		await self.clients.claim();
 	})());
 });
@@ -52,22 +48,17 @@ self.addEventListener("fetch", event => {
 		return;
 	}
 	const local = url.origin === self.location.origin;
-	const fromCdn = CDN_FILES.includes(url.href);
-	if (!local && !fromCdn) {
+	const cdn = CDN.includes(url.href);
+	if (!local && !cdn) {
 		return;
 	}
 	event.respondWith((async () => {
 		const cache = await caches.open(CACHE_NAME);
-		if (fromCdn) {
+		if (cdn) {
 			const cached = await cache.match(event.request);
 			if (cached) {
 				return cached;
 			}
-			const response = await fetch(event.request);
-			if (response.ok) {
-				await cache.put(event.request, response.clone());
-			}
-			return response;
 		}
 		try {
 			const response = await fetch(event.request);

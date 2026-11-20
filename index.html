@@ -3,76 +3,51 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-	<meta name="theme-color" content="#111b25">
-	<title>Danube Navigator</title>
+	<meta name="theme-color" content="#10202d">
+	<title>Donau Offlinekarte</title>
 	<link rel="manifest" href="./manifest.webmanifest">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 	<link rel="stylesheet" href="./assets/css/app.css">
 </head>
 <body>
 	<header>
-		<div><strong>Danube Navigator</strong><small>Komoot-Referenzroute · Offline-Karten-Test</small></div>
-		<button id="locate" type="button">GPS starten</button>
+		<div class="brand">
+			<strong>Donau Offlinekarte</strong>
+			<small>OSM · POIs · GPS</small>
+		</div>
+		<button id="locate" type="button">GPS anzeigen</button>
 	</header>
 	<main>
-		<div id="map" role="application" aria-label="Karte der Donauroute"></div>
-		<section id="map-controls" aria-label="Kartenansicht">
-			<button id="view-test" type="button">Testgebiet Ulm</button>
-			<button id="view-route" type="button">Ganze Route</button>
-		</section>
-		<section id="offline-panel" aria-label="Offline-Karten">
-			<div class="panel-heading">
-				<strong>Offline-Karte: Ulm / Neu-Ulm · echte Z16-Testdaten</strong>
-				<span id="offline-state">Prüfe lokale Kartendaten …</span>
+		<div id="map" role="application" aria-label="Offlinekarte mit GPS-Standort und POIs"></div>
+		<div class="map-actions">
+			<button id="view-test" type="button">Ulm zeigen</button>
+			<button id="toggle-panel" type="button">Karte & POIs</button>
+		</div>
+		<div id="map-message" role="status" aria-live="polite">Karte wird geladen …</div>
+		<section id="panel" aria-label="Offlinekarten und Points of Interest" hidden>
+			<div class="panel-header">
+				<strong>Offlinekarte</strong>
+				<button id="close-panel" class="text-button" type="button" aria-label="Menü schließen">Schließen</button>
 			</div>
-			<div class="button-bar">
-				<button id="download-map" type="button">Testkarte herunterladen</button>
-				<button id="import-map" type="button" class="secondary">PMTiles importieren</button>
+			<p id="offline-state">Prüfe lokale Kartendaten …</p>
+			<div class="buttons">
+				<button id="download-map" type="button">Ulm-Testkarte laden</button>
+				<button id="import-map" class="secondary" type="button">PMTiles-Datei importieren</button>
 				<input id="map-file" type="file" accept=".pmtiles" hidden>
-				<button id="delete-map" type="button" class="secondary" hidden>Offline-Karte löschen</button>
+				<button id="delete-map" class="secondary" type="button" hidden>Offlinekarte löschen</button>
 			</div>
 			<progress id="download-progress" value="0" max="100" hidden></progress>
-			<p id="offline-note">Die Online-OSM-Karte ist noch nicht offline verfügbar. Nach dem Herunterladen wird die Karte auf deinem Gerät gespeichert.</p>
-		</section>
-		<section id="outdoor-poi-panel" aria-label="Outdoor-POIs">
-			<div class="panel-heading">
-				<strong>Outdoor-POIs · Ulm / Neu-Ulm</strong>
-				<span id="outdoor-poi-state">Prüfe POI-Daten …</span>
+			<p id="offline-note" class="help">Aktuell ist nur das Testpaket Ulm vorbereitet. Für die gesamte Donauroute werden separate Offline-Pakete benötigt.</p>
+			<div class="panel-header poititle">
+				<strong>Points of Interest</strong>
+				<span id="outdoor-poi-state">Lade POIs …</span>
 			</div>
 			<div id="outdoor-poi-filters" aria-label="POI-Kategorien ein- und ausschalten"></div>
-			<p class="poi-note">Quelle: OpenStreetMap. Die Angaben sind nicht geprüft. Unterstände sind keine automatische Übernachtungserlaubnis; Feuerstellen keine Feuerfreigabe.</p>
+			<p class="help">OSM-Angaben sind nicht vor Ort geprüft. Schutzhütten bedeuten keine Übernachtungserlaubnis; Feuerstellen keine Feuerfreigabe.</p>
 		</section>
-		<section id="tour-controls" aria-label="Touraufzeichnung">
-			<button id="tour-toggle" type="button">Tour starten</button>
-			<button id="tour-reset" type="button" class="secondary">Zurücksetzen</button>
-			<span id="tour-state">Tour noch nicht gestartet</span>
-		</section>
-		<section id="stats">
-			<div><span>Gesamtroute</span><strong id="total">–</strong></div>
-			<div><span>Tatsächlich gefahren</span><strong id="progress">0.0 km</strong></div>
-			<div><span>Routen-km (nächster Punkt)</span><strong id="route-position">–</strong></div>
-			<div><span>Rest auf der Route</span><strong id="remaining">–</strong></div>
-			<div><span>Abstand zur Route</span><strong id="offroute">–</strong></div>
-		</section>
-		<p id="status" role="status">Lade Referenzroute …</p>
 	</main>
 	<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
-	<script>
-		if (!window.maplibregl || !window.pmtiles) {
-			const message = "Kartenbibliothek nicht geladen. Bitte die Seite mit Internet öffnen und neu laden.";
-			document.getElementById("status").textContent = message;
-			document.getElementById("offline-state").textContent = message;
-		}
-		window.addEventListener("unhandledrejection", event => {
-			const error = event.reason?.message || String(event.reason);
-			console.error("Unbehandelter Fehler:", error);
-			const state = document.getElementById("offline-state");
-			if (state?.textContent?.startsWith("Prüfe lokale")) {
-				state.textContent = `Startfehler: ${error}`;
-			}
-		});
-	</script>
 	<script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>

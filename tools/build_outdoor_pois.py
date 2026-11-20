@@ -18,6 +18,16 @@ OVERPASS_URLS = (
 )
 
 CATEGORY_LABELS = {
+	"water": "Trinkwasser",
+	"shop": "Supermärkte",
+	"bakery": "Bäckereien",
+	"food": "Essen & Cafés",
+	"camp": "Campingplätze",
+	"lodging": "Unterkünfte",
+	"bike": "Fahrradservice",
+	"toilets": "Toiletten",
+	"transport": "Bahnhof / Fähre",
+	"medical": "Apotheke / Arzt",
 	"shelter": "Schutzhütten",
 	"wilderness_hut": "Wildnishütten",
 	"cave": "Höhlen",
@@ -26,6 +36,8 @@ CATEGORY_LABELS = {
 	"picnic": "Picknickplätze",
 	"castle_ruin": "Burgruinen",
 	"ruin": "Sonstige Ruinen",
+	"scenic": "Sehenswertes",
+	"beach": "Badestellen",
 }
 
 
@@ -115,8 +127,31 @@ def categorize(tags):
 		return "castle_ruin"
 	if tags.get("historic") == "ruins" or tags.get("ruins") == "castle":
 		return "castle_ruin" if tags.get("ruins") == "castle" else "ruin"
+	if tags.get("amenity") == "drinking_water":
+		return "water"
+	if tags.get("shop") == "supermarket":
+		return "shop"
+	if tags.get("shop") == "bakery":
+		return "bakery"
+	if tags.get("amenity") in {"restaurant", "cafe", "fast_food"}:
+		return "food"
+	if tags.get("tourism") == "camp_site":
+		return "camp"
+	if tags.get("tourism") in {"hotel", "hostel", "guest_house", "motel", "alpine_hut"}:
+		return "lodging"
+	if tags.get("shop") == "bicycle" or tags.get("amenity") == "bicycle_repair_station":
+		return "bike"
+	if tags.get("amenity") == "toilets":
+		return "toilets"
+	if tags.get("railway") == "station" or tags.get("amenity") == "ferry_terminal":
+		return "transport"
+	if tags.get("amenity") in {"pharmacy", "hospital", "clinic", "doctors"}:
+		return "medical"
+	if tags.get("tourism") in {"attraction", "viewpoint"}:
+		return "scenic"
+	if tags.get("natural") == "beach" or tags.get("leisure") == "bathing_place":
+		return "beach"
 	return None
-
 
 def as_feature(element, bbox):
 	osm_type = element.get("type")

@@ -143,12 +143,12 @@ async function downloadMap() {
 		const response = await fetch(DOWNLOAD_URL, { cache: "no-store" });
 		if (!response.ok) {
 			if (response.status === 404) {
-				throw new Error("Ulm-Testkarte fehlt noch auf GitHub. Zuerst den Workflow 'Offline-Testkarte erstellen' unter Actions ausführen.");
+				throw new Error("Ulm-Testkarte ist noch nicht auf GitHub veröffentlicht. Bitte die Action „Offline-Testkarte erstellen“ ausführen.");
 			}
 			throw new Error(`Karten-Download fehlgeschlagen (HTTP ${response.status}).`);
 		}
 		if (!response.body) {
-			throw new Error("Der Browser unterstützt keinen gestreamten Download.");
+			throw new Error("Dieser Browser unterstützt keinen gestreamten Download.");
 		}
 		const total = Number(response.headers.get("Content-Length")) || 0;
 		await writeStream(response.body, total);
@@ -161,7 +161,7 @@ async function downloadMap() {
 }
 
 async function deleteMap() {
-	if (!confirm("Offline-Karte von diesem Gerät löschen? Deine Tourdaten bleiben erhalten.")) {
+	if (!confirm("Lokale Offlinekarte von diesem Gerät löschen?")) {
 		return;
 	}
 	setBusy(true);

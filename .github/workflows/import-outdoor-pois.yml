@@ -1,4 +1,4 @@
-name: Outdoor-POIs importieren
+name: OSM-POIs importieren
 
 on:
   workflow_dispatch:
@@ -40,14 +40,16 @@ jobs:
         run: |
           set -euo pipefail
           osmium tags-filter tmp/ulm.osm.pbf \
-            'nwr/amenity=shelter' \
-            'nwr/tourism=wilderness_hut,picnic_site' \
-            'nwr/natural=cave_entrance,rock_overhang' \
+            'nwr/amenity=shelter,drinking_water,restaurant,cafe,fast_food,bicycle_repair_station,toilets,pharmacy,hospital,clinic,doctors,ferry_terminal' \
+            'nwr/shop=supermarket,bakery,bicycle' \
+            'nwr/tourism=wilderness_hut,picnic_site,camp_site,hotel,hostel,guest_house,motel,alpine_hut,attraction,viewpoint' \
+            'nwr/natural=cave_entrance,rock_overhang,beach' \
             'nwr/shelter_type=rock_shelter' \
-            'nwr/leisure=firepit' \
+            'nwr/leisure=firepit,bathing_place' \
             'nwr/historic=castle,ruins' \
             'nwr/ruins=castle' \
-            -t -o tmp/outdoor.osm.pbf -O
+            'nwr/railway=station' \
+            -o tmp/outdoor.osm.pbf -O
           osmium export tmp/outdoor.osm.pbf -o tmp/outdoor-raw.geojson \
             -a type,id -O
           python tools/build_outdoor_pois.py \
